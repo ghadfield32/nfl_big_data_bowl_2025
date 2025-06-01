@@ -1,0 +1,1900 @@
+
+
+--------------goal start-------------------------------------------
+
+### Chose Vertical Success Rate Grade (VSRG)
+
+
+
+#### **Innovation & Novelty**
+
+While metrics like Expected Catch Probability (ECP) are well-established, VSRG offers a fresh perspective by assessing a receiver's success in contested catches across different vertical zones. This approach delves into the nuances of receiver performance, providing insights not commonly explored in existing analytics.
+
+#### **Feasibility for a Hackathon**
+
+VSRG can be implemented efficiently within a hackathon timeframe. It primarily requires:
+
+* **Catch contest indicators**
+* **Z-axis positioning data**
+
+These data points are readily available in the NFL Big Data Bowl dataset, allowing for swift data processing and analysis.
+
+#### **Alignment with Assignment Criteria**
+
+The assignment emphasizes practicality, creativity, novelty, and rigor. VSRG addresses these by:
+
+* **Practicality**: Offering actionable insights for scouting and player evaluation.
+* **Creativity & Novelty**: Introducing a unique metric that assesses receiver performance in vertical contested situations.
+* **Rigor**: Allowing for detailed statistical analysis and validation.
+
+---
+
+### Implementation Strategy
+
+1. **Data Preparation**:
+
+   * Filter plays involving contested catches.
+   * Extract z-axis data to determine the vertical zone of each catch attempt.
+
+2. **Metric Calculation**:
+
+   * Calculate success rates of contested catches for each vertical zone (e.g., low, mid, high).
+   * Develop a grading system (e.g., scale of 0 to 100) to quantify performance in each zone.
+
+3. **Visualization**:
+
+   * Create heatmaps to visualize receiver performance across vertical zones.
+   * Develop comparative charts to highlight strengths and areas for improvement among receivers.([Football Perspective][1])
+
+---
+
+### Deliverables
+
+* **Executive Summary (1 Page)**:
+
+  * Introduce VSRG and its relevance.
+  * Summarize methodology and key findings.
+  * Discuss implications for scouting and player evaluation.
+
+* **Technical Documentation**:
+
+  * Detail data processing steps and analytical methods.
+  * Explain the rationale behind the grading system.
+  * Present findings with supporting visualizations.
+  * Address limitations and propose areas for further research.([nfllines.com][2])
+
+---
+
+### Additional Considerations
+
+* **Data Quality**: Ensure the accuracy of z-axis data and catch contest indicators.
+* **Sample Size**: Validate that each vertical zone has a sufficient number of contested catch instances for meaningful analysis.
+* **Contextual Factors**: Consider incorporating additional variables such as defender proximity or quarterback pressure to enhance the robustness of the metric.
+
+---
+
+By focusing on the Vertical Success Rate Grade, you can deliver a project that stands out for its innovation and practical application, aligning well with the expectations of the Baltimore Ravens' Player Personnel Department.
+
+If you need assistance with specific aspects of the implementation or further clarification on any points, feel free to ask!
+
+[1]: https://www.footballperspective.com/nfl-field-goal-rates-from-2014-to-2018/?utm_source=chatgpt.com "NFL Field Goal Rates From 2014 to 2018"
+[2]: https://nfllines.com/nfl-2024-improbability-index/?utm_source=chatgpt.com "NFL 2024 - Improbability Index - NFL Lines"
+
+
+
+
+
+
+target metric reasoning:
+Given how the Ravens’ project brief is framed, keep contested_success as your model’s target and treat VSRG as an analysis layer built from the model’s outputs.
+That choice scores highest on every rubric point they list:
+Rubric item	Why the binary target fits best
+Practicality	Binary classification is quick to build, easy to validate (AUROC, log-loss, calibration), and simple for scouts to understand: “What’s the chance we win this ball?”
+Creativity / Novelty	VSRG itself is the novel angle; deriving it from predicted probabilities lets you slice it by zone, game situation, receiver archetype, etc., showing extra insight without complicating the core model.
+Rigor	You can report both model diagnostics and downstream reliability of the VSRG grade (e.g., Bayesian credible intervals or bootstrap CIs by zone). The audit trail is transparent.
+Hackathon time-box	More training samples (one row per target) means faster convergence and less fuss with resampling. You avoid designing a custom regression loss or wrestling with class imbalance at the aggregated level.
+How that maps to the assignment deliverables
+
+    Position-specific skill
+    Skill defined: “Ability to win vertical contested catches.” The binary label is the direct measurement of that skill on a per-play basis.
+
+    1-page executive summary
+
+        Start with: “Model predicts X % probability a receiver wins a contested ball in each vertical zone.”
+
+        Show a heat-map or three-tier bar of VSRG scores (Low / Mid / High) for your top 10 WR/TE prospects.
+
+    Technical appendix (if time)
+
+        Detail feature set → model choice (e.g., XGBoost or LightGBM) → calibration check.
+
+        Include the VSRG derivation formula and a short discussion of variance (why you need ≥ N plays per zone).
+
+    Code submission
+
+        Train contested_success with cross-validation.
+
+        After predict_proba, aggregate to produce a vsrg_score DataFrame.
+
+        Save both model artefacts and the notebook/script that produces the executive summary charts.
+
+
+        
+
+        
+
+Reasons it's Unique:
+VSRG appears to be a genuinely novel addition to the receiver‐analytics toolbox. While numerous metrics quantify contested catches (e.g., raw contest success rate, catch‐rate‐over‐expected) or overall spatial impact, none explicitly stratify contested‐catch performance by vertical bands (low, mid, high). A survey of existing analytics shows:
+Survey of Existing Metrics
+Contested Catch Rate
+
+Most public and proprietary analytics report a receiver’s contested catch rate—the percentage of targets deemed “contested” that the receiver secures. Pro Football Focus ranked Tyreek Hill at 65.0% contested‐catch rate in 2019, but did not differentiate by catch height
+PFF
+. SportsDataIO’s PDF lists “Contested Catch Rate” among its advanced metrics, yet similarly treats it as a single aggregate number
+SportsDataIO
+.
+Adjusted Contested Catch Rate
+
+Fan‐driven analyses (e.g., Reddit’s r/NFL_Draft discussions) adjust contested‐catch rates for opportunity or open‐target rates, but still do not segment by vertical zone
+Reddit
+.
+Catch Rate Over Expected (CROE)
+
+Next Gen Stats publishes Catch Rate Over Expected (CROE), modeling catch difficulty by factors like separation, depth, and speed—but again produces a single holistic value per receiver or play
+NFL.com
+.
+ESPN Receiver Tracking Metrics (RTMs)
+
+ESPN’s RTMs break receiving into phases—getting open, contesting & catching, and YAC—but do not further divide the contested‐catch component into vertical zones
+ESPN.com
+.
+True Catch Rate
+
+“True Catch Rate” filters out uncatchable throws to isolate a receiver’s pure catching ability, yet remains an overall percentage rather than a zonal analysis
+FantasyData
+.
+CHASE: Receiver Spatial Impact
+
+Kaggle’s CHASE metric quantifies where receivers force defensive attention in contested regions, emphasizing spatial dominance—but it addresses horizontal/positional dominance rather than vertical segmentation
+Kaggle
+.
+Reception Perception (Matt Harmon)
+
+Football Perspective’s Reception Perception project categorizes matchups by route type and man/zone coverage, but does not incorporate z-axis catch height distinctions
+SūmerSports
+.
+Novelty & Originality of VSRG
+
+No public or fan‐driven metric currently assesses contested‐catch performance by vertical band (e.g., defining “low,” “mid,” and “high” contested zones using z-axis data). VSRG’s core innovation is to:
+
+    Segment contested targets by vertical range (using Next Gen’s z-axis data points).
+
+    Compute success rates within each band, revealing if a receiver excels on high‐point catches (“high‐point” specialists) versus lower contested grabs.
+
+    Translate those rates into a standardized 0–100 grade for each zone, enabling easy cross‐player and cross‐year comparisons.
+
+Why Nothing Else Is Like It
+
+    Big Data Bowl submissions have covered kinematic risk zones, RPO value, and defensive congestion—but none explicitly report contested‐catch success stratified vertically
+    NFL Football Operations
+    .
+
+    2025 Big Data Bowl finalists proposed metrics for motion value and tempo, yet vertical contested‐catch grading does not appear among them
+    NFL Football Operations
+    .
+
+    Academic literature on vertical jumps correlates jump height to contested‐catch advantage, but does not operationalize that into a vertical success rate metric
+    College of Health and Human Sciences
+    .
+
+Conclusion
+
+Because existing contested‐catch metrics aggregate across all heights, VSRG fills a clear gap by leveraging z-axis data to differentiate where receivers win contested battles. This stratification yields deeper scouting insights—identifying, for example, receivers who thrive at the highest point versus those who dominate box‐level contests. Thus, VSRG is both original and highly actionable for analytics teams.
+
+
+--------------goal end-------------------------------------------
+
+
+***Feature Engineering***
+Below is a walkthrough of each major metric used in our VSRG pipeline—where the raw data comes from, exactly how we compute it, and why it matters for our overall goal of grading receivers’ success on contested, vertically‐segmented catches. The explanation follows the same order as in our feature‐engineering code.
+
+> **Summary of Key Points:**
+>
+> * **Source Tables:** Most play‐level/contextual metrics come from **`plays.csv`**; player‐level/position metrics come from **`player_play.csv`**; tracking‐based spatial/kinematic metrics come from the “tracking\_week\_\*.csv” files.
+> * **Calculation Logic:** We first filter down to drop‐back plays (plays with a forward pass). From `plays.csv` we derive height‐zone (`height_zone`), pass‐direction (`pass_dir`), win‐prob features (`preWP`, `wp_delta`, `postWP`), and EPA change (`epa_change`). From `player_play.csv` we get per‐receiver flags like “was targeted” and whether the QB was hit (`qb_was_hit`). From the tracking files we compute receiver‐to‐cornerback separation (`sep_receiver_cb`), second‐closest defender separation (`min_other_sep`), closing speed (`closing_speed`), burst speed (`s_max_last1s`), and leverage angle (`leverage_angle`). Contextual merges then add “is\_contested” and “contested\_success.” Finally, VSRG itself aggregates `contested_success` by vertical zone (low/mid/high) into receiver‐zone success rates and grades.
+> * **Why It Matters:** Each metric feeds into either (a) identifying whether a catch is contested in the first place, (b) modeling the probability that the receiver “wins” a contested catch, or (c) stratifying that success by vertical bands. Altogether, they let us build a binary classification model (`contested_success`) and then slice the model’s outputs into a Zone‐by‐Zone Grade (VSRG), showing which receivers excel at low‐point grabs, mid‐level grabs, or high‐point grabs.
+
+---
+
+## 1. Play‐Level and Contextual Metrics (from `plays.csv`)
+
+### 1.1 Filtering to Drop‐Back Plays
+
+* **Raw Source:** `plays.csv` (one row per play, with metadata like `isDropback`, `passLength`, `playAction`, etc.).
+* **Logic:**
+
+  ```python
+  df = plays_raw.loc[plays_raw["isDropback"]].copy()
+  df = df.loc[df["passLength"].notna()]
+  ```
+
+  We only keep rows where `isDropback == True` (i.e. the quarterback actually dropped back to pass) and `passLength` is non‐null.
+* **Why It Matters:** We only care about forward‐pass plays; run plays, kickoffs, punts, etc., aren’t relevant to contested‐catch analysis.
+
+---
+
+### 1.2 `height_zone`
+
+* **Raw Source:** `passLength` column in `plays.csv`.
+* **Computation:**
+
+  ```python
+  def _label_height_zone(pass_length: float) -> str:
+      if pass_length <= 5:
+          return "low"
+      if pass_length <= 20:
+          return "mid"
+      return "high"
+  df["height_zone"] = df["passLength"].apply(_label_height_zone)
+  ```
+
+  * **“low”**: Passes traveling ≤ 5 yards
+  * **“mid”**: Passes traveling > 5 and ≤ 20 yards
+  * **“high”**: Passes > 20 yards
+* **Why It Matters:** This is our vertical segmentation. We’ll later aggregate contested‐catch success separately in each of these three “bands.”
+
+---
+
+### 1.3 `air_yards_bin`
+
+* **Raw Source:** Also uses `passLength` in `plays.csv`.
+* **Computation:**
+
+  ```python
+  bins   = [-np.inf, 0, 5, 20, np.inf]
+  labels = ['behind','short','mid','long']
+  df["air_yards_bin"] = pd.cut(df["passLength"], bins=bins, labels=labels)
+  ```
+
+  * **“behind”**: Negative air yards (throw behind line of scrimmage)
+  * **“short”**: 0 < yards ≤ 5
+  * **“mid”**: 5 < yards ≤ 20
+  * **“long”**: > 20
+* **Why It Matters:** Although not strictly used in VSRG, we keep it for any classic “air‐yard” analyses or if we later want to compare contested success vs. traditional short/mid/long bins.
+
+---
+
+### 1.4 `pass_dir`
+
+* **Raw Source:**
+
+  1. `passLocationType` (if present; e.g. “Left Bunch,” “Right Slot,” “Middle”)
+  2. Otherwise, `targetX` (ball’s X coordinate) as fallback.
+* **Computation:**
+
+  ```python
+  def map_pass_dir(pass_loc: str | float, target_x: float) -> str:
+      if isinstance(pass_loc, str):
+          pl = pass_loc.lower()
+          if 'left' in pl: return 'L'
+          if 'right' in pl: return 'R'
+          if 'middle' in pl or 'center' in pl: return 'M'
+      if pd.notna(target_x):
+          if target_x < 120/3:    return 'L'
+          if target_x > 2*120/3:  return 'R'
+          return 'M'
+      return np.nan
+  df["pass_dir"] = df.apply(lambda r: map_pass_dir(r.get("passLocationType"), r.get("targetX")), axis=1)
+  df["pass_dir"] = df["pass_dir"].fillna("unknown")
+  ```
+
+  * First tries the labeled `passLocationType`.
+  * If missing, splits the 120‐yard field into thirds by `targetX`.
+  * Fallback “unknown” if neither is available.
+* **Why It Matters:** Side‐of‐field context can be important in contested‐catch modeling (e.g. cornerbacks and boundary/field‐side dynamics), though VSRG itself focuses on vertical stratification.
+
+---
+
+### 1.5 Play‐Action and RPO Flags
+
+* **Raw Source:**
+
+  * `playAction` column in `plays.csv` (values: “play\_action,” “standard\_dropback,” etc.)
+  * `pff_runPassOption` column in `plays.csv` (non‐null if it was an RPO)
+* **Computation:**
+
+  ```python
+  df["is_play_action"] = df["playAction"] == "play_action"
+  df["is_rpo"]         = df.get("pff_runPassOption","").notna()
+  ```
+* **Why It Matters:** Receivers on RPOs or play‐action plays might behave differently—contested rates and separation patterns can shift if the defense is expecting an RPO or is fooled by play‐action.
+
+---
+
+### 1.6 Win Probability Features (`preWP`, `wp_delta`, `postWP`)
+
+* **Raw Source:**
+
+  * `preSnapHomeTeamWinProbability`
+  * `homeTeamWinProbabilityAdded`
+  * (all in `plays.csv`)
+* **Computation:**
+
+  ```python
+  df["preWP"]    = df["preSnapHomeTeamWinProbability"] / 100.0
+  df["wp_delta"] = df["homeTeamWinProbabilityAdded"]  / 100.0
+  df["postWP"]   = (df["preWP"] + df["wp_delta"]).clip(0,1)
+  ```
+
+  Convert from percentages (0–100) into decimals (0.0–1.0).
+* **Why It Matters:** Contextual pressure matters. A contested catch early in a blowout is not the same as one late in a tied game. These features let the model—and the scouting report—understand game leverage.
+
+---
+
+### 1.7 EPA Change (`epa_change`)
+
+* **Raw Source:** `expectedPointsAdded` in `plays.csv`
+* **Computation:**
+
+  ```python
+  df["epa_change"] = df["expectedPointsAdded"].fillna(0.0)
+  ```
+
+  We replace any missing EPA with 0.0 (no change).
+* **Why It Matters:** Even though VSRG is binary (success vs. failure on contested catch), we might want to correlate contested‐catch skill (over‐or‐under expectation) with actual value (EPA). Later in visualization we’ll plot **EPA Δ vs. VSRG‐OE** to see if high‐point specialists truly generate more expected points.
+
+---
+
+## 2. Receiver‐/Play‐Level Flags (from `player_play.csv`)
+
+### 2.1 Target Flag and `qb_was_hit`
+
+* **Raw Source:** `player_play.csv`
+
+  * Each row is one player in one play.
+  * `wasTargettedReceiver == 1` indicates that `nflId` in that row is the targeted receiver.
+  * `quarterbackHit` in `player_play.csv` indicates if the QB got hit on that play.
+* **Computation:**
+
+  ```python
+  # ① Isolate only “targeted” rows (one per (gameId, playId, receiverId))
+  targets = (
+      pp_raw.loc[pp_raw["wasTargettedReceiver"] == 1, ["gameId","playId","nflId"]]
+             .rename(columns={"nflId": "receiverId"})
+  )
+  # ② QB hit flag is aggregated at play level:
+  hit = (
+      pp_raw.groupby(["gameId","playId"])["quarterbackHit"]
+            .max()
+            .rename("qb_was_hit")
+            .reset_index()
+  )
+  out = targets.merge(hit, on=["gameId","playId"], how="left")
+  ```
+
+  * At the end we have one row per `(gameId, playId, receiverId)` with a `qb_was_hit` flag (True/False).
+* **Why It Matters:** If the QB is getting hit, it often affects pass accuracy, placement, and contested‐catch dynamics. A receiver may be more likely to be late to the ball if the QB is under duress.
+
+---
+
+### 2.2 Route One‐Hots
+
+* **Raw Source:** `player_play.csv`, `routeRan` or, if missing, `route` column.
+* **Computation:**
+
+  ```python
+  route_col = "routeRan" if "routeRan" in df.columns else ("route" if "route" in df.columns else None)
+  if route_col:
+      rts = (
+          pp_raw[["gameId","playId","nflId", route_col]]
+                .rename(columns={route_col: "route", "nflId": "receiverId"})
+      )
+      rts = pd.get_dummies(rts, columns=["route"], prefix="route")
+      out = out.merge(rts, on=["gameId","playId","receiverId"], how="left")
+  ```
+
+  We create dummy columns like `route_GO`, `route_SLANT`, `route_FLAT`, etc.
+* **Why It Matters:** Different route types result in different contested opportunities. For instance, fade routes (high‐point throws) often end up in “high” zones, whereas slants might be a quick “low” contest near the box. Including route one‐hots helps the model learn these interactions.
+
+---
+
+### 2.3 Motion / Shift Flags
+
+* **Raw Source:** `player_play.csv` columns `inMotionAtBallSnap` and `motionSinceLineset`.
+* **Computation:**
+
+  ```python
+  snap_motion = df.groupby(["gameId","playId"])["inMotionAtBallSnap"].max().rename("in_motion_at_snap")
+  shift_flag  = df.groupby(["gameId","playId"])["motionSinceLineset"].max().rename("shift_since_line")
+  out = out.merge(snap_motion, on=["gameId","playId"], how="left")
+  out = out.merge(shift_flag , on=["gameId","playId"], how="left")
+  out = out.loc[~(out["in_motion_at_snap"].isna() | out["shift_since_line"].isna())]
+  ```
+
+  We drop any play where these flags are completely missing (to ensure consistency).
+* **Why It Matters:** If a receiver was in motion or shifted, defensive leverage and separation can shift drastically. That can directly affect contested opportunities.
+
+---
+
+## 3. Tracking‐Derived Spatial and Kinematic Metrics (from `tracking_week_*.csv`)
+
+### 3.1 Data Loading & Per‐Play Snapshots
+
+* **Raw Source:** Nine CSVs: `tracking_week_1.csv` through `tracking_week_9.csv`. Each row has `(gameId, playId, nflId, club, x, y, s, o, event, time)`.
+* **Computation (overall flow):**
+
+  1. **Load** all tracking weeks into memory (only columns relevant to contested analysis).
+  2. **Filter** to rows where `event == "pass_arrived"` (time when the ball arrives at receiver’s location).
+  3. **Rename** columns so that receiver rows are `rcv_x, rcv_y, rcv_s, rcv_o`.
+  4. **Pair** every receiver at pass\_arrived with every potential CB from the same snapshot (based on `club` mismatch).
+  5. **Compute** Euclidean distance between receiver and each CB:
+
+     ```python
+     m["sep_receiver_cb"] = sqrt((rcv_x - cb_x)^2 + (rcv_y - cb_y)^2)
+     ```
+  6. **Find** the single nearest CB for each `(gameId, playId, receiverId)`, and also track second‐closest defender separation (`min_other_sep`).
+* **Why It Matters:** `sep_receiver_cb` is our fundamental “contested” indicator (if ≤ threshold, it’s contested). `min_other_sep` is used later to compute `hypo_sep` (a placeholder for separation consistency) and might inform contested dynamics.
+
+---
+
+### 3.2 Separation Velocity (`sep_velocity`)
+
+* **Raw Source:** We take the nearest‐CB snapshot at `pass_arrived` and look back 1 second in tracking to see how separation changed.
+* **Computation (pseudocode):**
+
+  ```python
+  # For each receiver‐CB snapshot row at pass_arrived:
+  play_df = play_groups[(gameId, playId)]
+  win       = play_df[play_df["time"] >= time_rcv - one_sec]
+  two       = win[win["nflId"].isin([receiverId, cbId])]
+  r_sl      = two[two["nflId"] == receiverId]
+  c_sl      = two[two["nflId"] == cbId]
+  sep       = np.hypot(r_sl["x"] - c_sl["x"], r_sl["y"] - c_sl["y"])
+  dt        = (r_sl["time"].iloc[-1] - r_sl["time"].iloc[0]).total_seconds()
+  sep_velocity = (sep[-1] - sep[0]) / dt if dt > 0 else np.nan
+  ```
+
+  * If less than two full location samples in that 1 second window → `np.nan`.
+* **Why It Matters:** A receiver “busting well” away from the CB (high positive `sep_velocity`) vs. a CB closing under the receiver (negative or low `sep_velocity`) can strongly influence contested‐catch likelihood.
+
+---
+
+### 3.3 Cornerback Closing Speed (`closing_speed`)
+
+* **Raw Source:** Same “last‐second” window as above, using CB’s speed (`s`) and orientation (`o`).
+* **Computation (from code):**
+
+  ```python
+  dx = x_r - x_c
+  dy = y_r - y_c
+  dist = hypot(dx, dy) or 1e-6
+  rad = np.deg2rad((360 - o_c + 90) % 360)
+  close_spd = s_c * (cos(rad)*dx/dist + sin(rad)*dy/dist)
+  ```
+
+  This projects the CB’s speed vector onto the unit vector from CB to receiver.
+* **Why It Matters:** If the CB is accelerating *toward* the receiver (high positive `closing_speed`), it’s harder for the receiver to win the catch. Conversely, a CB moving *away* yields easier contested chances.
+
+---
+
+### 3.4 Receiver Burst Speed (`s_max_last1s`)
+
+* **Raw Source:** In that same final‐second window (`time_rcv - 1 sec` to `time_rcv`), look at the receiver’s `s` (tracked top speed).
+* **Computation:**
+
+  ```python
+  burst.append(r_sl["s"].max() if not r_sl.empty else np.nan)
+  if burst > burst_cap (13 yd/s): set to np.nan
+  ```
+
+  * We cap “burst” at 13 yd/s (≈ 29 mph) as a biomechanical upper bound.
+* **Why It Matters:** A receiver’s vertical or lateral burst in the final second can be the difference between a minimal separation and securing a high‐point ball in tight space.
+
+---
+
+### 3.5 Leverage Angle (`leverage_angle`)
+
+* **Raw Source:** Simply the angle from receiver to CB at pass arrival.
+* **Computation:**
+
+  ```python
+  leverage_angle = arctan2(cb_y - rcv_y, cb_x - rcv_x)
+  ```
+* **Why It Matters:** Angle of attack matters. A CB approaching from behind vs. from the front changes jump timing and contested dynamics.
+
+---
+
+## 4. Combining Play‐, Player‐, and Tracking‐Derived Data
+
+Once we have:
+
+1. **`plays_fe`** (dropback plays + play‐level context: `height_zone`, `pass_dir`, `preWP`, etc.),
+2. **`player_pp_fe`** (receiver‐level flags: `receiverId`, `qb_was_hit`, `route_…` dummies, `in_motion_at_snap`, `shift_since_line`),
+3. **`tracking_df`** (one row per `(gameId, playId, receiverId)` with `sep_receiver_cb`, `sep_velocity`, `closing_speed`, `s_max_last1s`, `leverage_angle`, `min_other_sep`),
+
+we merge them together on `(gameId, playId, receiverId)` to get one cohesive DataFrame (`df`) containing every feature needed to decide “contest flag” and build our binary target.
+
+---
+
+### 4.1 `contest_thresh` and `is_contested`
+
+* **Definition:** We define a “contest threshold” as a function of receiver height:
+
+  ```python
+  df["contest_thresh"] = df["rcv_height"].apply(lambda h: max(1.0, 0.2 * h / 12) if notna(h) else 1.0)
+  df["is_contested"]    = df["sep_receiver_cb"] <= df["contest_thresh"]
+  ```
+
+  * **Why 0.2 × (height\_in\_feet)?** If a receiver is 6 ft tall, 0.2×6 = 1.2 ft (≈ 0.4 yards). We use max(1.0 yd) so even short receivers require ≤ 1 yd separation to count as “contested.”
+* **Why It Matters:** `is_contested` is the core binary flag: “Is the nearest CB within X yards of the receiver at pass arrival?” Only those plays qualify as “contested catches.” Everything downstream depends on correctly labeling contested vs. uncontested.
+
+---
+
+### 4.2 `caught_flag` and `contested_success`
+
+* **Raw Source:** `passResult` in `plays.csv` (“C” = caught, “I” = incomplete, “S” = sack, etc.)
+* **Computation:**
+
+  ```python
+  df["caught_flag"] = df["passResult"].isin(("C","S"))  # “S” may indicate catch + success? (e.g. screen?) 
+  df["contested_success"] = df["is_contested"] & df["caught_flag"]
+  ```
+
+  * If you see `cov_cols` (coverage one‐hots) in the DataFrame, there’s an optional adjustment:
+
+    ```python
+    df["contested_success"] = df["is_contested"] & df["caught_flag"] & (1 - 0.1 * df["cov_zone"])
+    ```
+
+    But by default we simply require that a contested catch is also “caught.”
+* **Why It Matters:** This is our fundamental *binary target*—did the targeted receiver (when contested) secure the catch (1) or not (0)? We train our XGBoost/LightGBM on this.
+
+---
+
+## 5. Receiver and Cornerback Physical Attributes (from `players.csv`)
+
+### 5.1 Physical Measurements: `rcv_height`, `rcv_weight`, `cb_height`, `cb_weight`
+
+* **Raw Source:** `players.csv`
+
+  * Columns “height” (e.g. “6-01”) and “weight” (e.g. “195”).
+* **Computation:**
+
+  ```python
+  df["height_inches"] = convert_height_to_inches(df["height"])  # e.g. “6-01” → 73
+  df["weight_numeric"] = to_numeric(df["weight"])
+  ```
+
+  We perform this merge twice: once on `receiverId→height_inches` (→`rcv_height`, `rcv_weight`) and once on `cbId→height_inches` (→`cb_height`, `cb_weight`).
+* **Why It Matters:** Height and weight both factor into “contest threshold” (taller receivers can reach higher) and impact leverage calculations. A bigger receiver might be able to hold off a smaller CB even if separation is minimal.
+
+---
+
+## 6. Kinematic/Contextual Enhancements
+
+### 6.1 Kinematic Features: `sideline_dist`, placeholder `pass_rush_sep`
+
+* **Computation:**
+
+  ```python
+  # If x,y refer to receiver coordinates:
+  df["sideline_dist"] = min(y, 53.3 – y)  
+  df["pass_rush_sep"] = np.nan
+  ```
+
+  * `sideline_dist`: distance from receiver’s location to the nearest sideline (field is 53.3 yards wide).
+  * We overwrote placeholder `pass_rush_sep` later once we compute true pass‐rush separation (see below).
+* **Why It Matters:** Bunch of routes occur near the numbers or hash; contested catches near the sideline are riskier (out of bounds, lower margin for error).
+
+---
+
+### 6.2 Contextual Features from `plays_fe`, `player_pp`
+
+After merging, we “add” context via
+
+```python
+df = add_contextual_features(df, plays_fe, player_pp, debug=debug)
+```
+
+Which:
+
+1. Pulls in `timeToThrow`, `was_tipped` (from `passTippedAtLine`), `down`, `yardsToGo`, `yardline_number`, `yardline_side`.
+2. Recomputes (or double‐checks) `is_contested` and `contested_success` (to guarantee we didn’t overwrite them inadvertently).
+3. Ensures `qb_was_hit` exists (no overwrite).
+4. Calculates a new feature:
+
+   ```python
+   df["contest_thresh"] = df["rcv_height"].apply(...)
+   df["is_contested"]    = df["sep_receiver_cb"] <= df["contest_thresh"]
+   df["caught_flag"]     = df["passResult"].isin(("C","S"))
+   df["contested_success"] = df["is_contested"] & df["caught_flag"]
+   ```
+
+* **Why It Matters:** This “sanity check” ensures any play‐ or receiver‐level context missed earlier gets injected before final target definition.
+
+---
+
+### 6.3 Matchup Features: Route and Coverage One‐Hots
+
+After contextual merge, we call:
+
+```python
+df = add_matchup_features(df, plays, player_pp)
+```
+
+Which:
+
+1. Merges route dummies if not already present.
+2. Merges coverage one‐hots from `plays_fe["pff_passCoverage"]` → dummy columns `cov_*` (e.g. `cov_2-Man`, `cov_Quarters`, etc.).
+3. Fills in any missing `cov_…` columns with 0 (so every coverage type has a column, even if that play didn’t use it).
+
+* **Why It Matters:** A receiver’s contested success is heavily influenced by coverage type: single coverage vs. bracket vs. zone. Having these dummies allows the model to learn, “Under Cover‐2, high‐point catches are X% harder than under Man‐to‐Man.”
+
+---
+
+### 6.4 Temporal Features: `sep_stddev`, `hypo_sep`
+
+* **Computation:**
+
+  ```python
+  df["sep_stddev"] = 0.0  
+  df["hypo_sep"]   = df["min_other_sep"]  # second‐closest separation
+  ```
+
+  We initialize a placeholder standard deviation (0.0) for separation—this can be improved with a full “frame‐by‐frame” separation time series, but for hackathon speed we leave it 0.
+* **Why It Matters:** In a fuller pipeline, we’d compute separation variance frame‐by‐frame. For now, `hypo_sep` lets us encode, “How close is the next‐nearest defender? If they’re within 0.5 yd, two defenders are basically crowding the receiver; if 5 yd away, it’s a single‐man battle.”
+
+---
+
+## 7. Pass Rush Separation (`pass_rush_sep`)
+
+After we’ve aligned contextual features, we compute true pass‐rush separation:
+
+1. **Get QB position at `pass_arrived`.**
+
+   ```python
+   qb_snap = get_qb_snapshots(tracking_weeks, players_df)
+   ```
+
+   * **Process:**
+
+     * Filter `players_df` to only QBs.
+     * In each `tracking_week_*.csv`, find rows where `event == "pass_arrived"` and `nflId` is one of those QBs.
+     * Keep `(gameId, playId, qb_x, qb_y)`.
+
+2. **Get defender positions at `pass_arrived`.**
+
+   ```python
+   defs = get_defender_snapshots(plays_df, tracking_weeks)
+   ```
+
+   * **Process:**
+
+     * In each `tracking_week_*.csv`, filter to `event == "pass_arrived"`.
+     * Merge with `plays_df[["gameId","playId","possessionTeam"]]` to label offense vs. defense.
+     * Keep only defenders (club ≠ possessionTeam).
+     * Rename to `(gameId, playId, defenderId, def_x, def_y)`.
+
+3. **Compute minimum rush distance.**
+
+   ```python
+   merged = defs.merge(qb_snap, on=["gameId","playId"], how="left")
+   merged["rush_dist"] = hypot(def_x - qb_x, def_y - qb_y)
+   min_sep = merged.groupby(["gameId","playId"])["rush_dist"].min().reset_index().rename({"rush_dist":"pass_rush_sep"})
+   out = df.merge(min_sep, on=["gameId","playId"], how="left")
+   ```
+
+* **Why It Matters:** The closer any defender is to the QB at pass arrival, the more likely the accuracy (and thus contested‐catch probability) suffers. We feed this into the model to capture “quarterback pressure” context.
+
+---
+
+## 8. Vertical Success Rate Grade (VSRG) Calculation
+
+Once **all** features are in place—including play, player, tracking, route, coverage, and physical attributes—we:
+
+1. **Validate** that every play has a `height_zone` in {0,1,2} corresponding to low/mid/high (the code uses integer labels 0,1,2 internally).
+
+2. **Ensure** that `is_contested` and `contested_success` are boolean and that no “success without contest” exists.
+
+3. **Produce a long‐form summary:**
+
+   ```python
+   base = (
+       df.groupby(["receiverId","height_zone"])
+         .agg(attempts=('is_contested','sum'),
+              successes=('contested_success','sum'))
+         .assign(vsrg_rate=lambda d: d['successes'] / d['attempts'])
+         .reset_index()
+   )
+   filtered = base.loc[base['attempts'] >= min_attempts].copy()
+   filtered['vsrg_zone'] = (filtered['vsrg_rate'] * 100).round().astype(int)
+   ```
+
+   * We only keep receiver–zone groups with at least `min_attempts` (default 5) to ensure reliability.
+   * `vsrg_rate` is the raw contested catch success rate in that zone; we round to an integer 0–100 grade (`vsrg_zone`).
+
+4. **Compute Overall VSRG per receiver:**
+
+   ```python
+   if equal_weight:
+       agg = lambda g: g['vsrg_rate'].mean()
+   else:  # attempt‐weighted average
+       agg = lambda g: (g['vsrg_rate'] * g['attempts']).sum() / g['attempts'].sum()
+   vsrg_ovrl = (
+       filtered.groupby('receiverId')
+               .apply(agg)
+               .mul(100)
+               .round()
+               .astype(int)
+               .rename('vsrg_overall')
+               .reset_index()
+   )
+   df = df.merge(vsrg_ovrl, on="receiverId", how="left")
+   baseline = df["vsrg_overall"].mean()
+   df["vsrg_overall"] = df["vsrg_overall"].fillna(baseline)
+   df["vsrg_oe"] = np.where(df["is_contested"],
+                            df["contested_success"].astype(float) - df["vsrg_overall"].div(100),
+                            0.0)
+   ```
+
+   * Receivers with fewer than the minimum attempts in all zones get a league‐average fill (`baseline`).
+   * `vsrg_oe` (skill‐over‐expectation) is defined as “did the receiver actually catch (1 or 0) minus their overall VSRG (converted back to a probability).”
+
+* **Why It Matters:**
+
+  * **`vsrg_zone` (0–100)** tells us how good a receiver is in each bin (e.g. Receiver 23 is a 90/70/55 graded on high/mid/low contests).
+  * **`vsrg_overall`** allows us to quickly rank receivers by their aggregate contested success.
+  * **`vsrg_oe`** isolates per‐play skill (e.g. on a “high” zone target, Receiver 23 has a 0.90 chance—if he actually caught it, OE = 1 − 0.90 = 0.10; if he dropped it, OE = 0 − 0.90 = −0.90). We can then correlate OE with EPA, situational leverage, etc.
+
+---
+
+## 9. Recap: Why Each Metric Matters Toward Our Goal
+
+* **`height_zone`** (from `passLength`): Defines the vertical buckets (low/mid/high) that VSRG hinges on.
+* **`sep_receiver_cb`** & **`contest_thresh`** → **`is_contested`**: Labels which targets truly involve tight man coverage or contested leaps.
+* **`caught_flag`** & **`is_contested`** → **`contested_success`**: Our per‐play binary target.
+* **Kinematics (`sep_velocity`, `closing_speed`, `s_max_last1s`, `leverage_angle`):** Provide detailed separation dynamics that inform the contested catch probability.
+* **Physical (`rcv_height`, `rcv_weight`, `cb_height`, `cb_weight`):** Inform who has the size advantage; also drive the contest threshold.
+* **Contextual (`preWP`, `wp_delta`, `postWP`, `pass_rush_sep`, `is_play_action`, `is_rpo`, `route_*`, `cov_*`, `sideline_dist`, `down`, `yardsToGo`, `yardline_side`, `qb_was_hit`):** Provide situational context so the model can differentiate “easy” contested catches (e.g., still play, no rush, equivocal separation) from “high‐pressure” ones (e.g., under duress, 4th & long, double‐covered).
+* **Aggregated VSRG (`vsrg_zone`, `vsrg_overall`, `vsrg_oe`):** Our final grading system—stratified contested success by vertical bands and converted into intuitive 0–100 scores.
+
+Taken together, this pipeline ensures that:
+
+1. We use **raw, publicly available** Big Data Bowl tables (`plays.csv`, `player_play.csv`, `tracking_week_*.csv`, `players.csv`).
+2. Each metric is built **step by step**—from filtering dropbacks to merging receiver/CB snapshots—so there’s a transparent audit trail.
+3. Our **binary target** (`contested_success`) is **simple and intuitive** for scouts: “Did he win the ball when it was truly contested?”
+4. **VSRG** slices those raw outputs by low/mid/high, giving a **novel, actionable** view of who is best at high‐point jumps vs. box‐level “wrestling” catches.
+
+If you need further detail on any specific line of code, or want to discuss how to adjust thresholds or extend the VSRG to other positions (tight ends, running backs out of the backfield), just let me know!
+
+
+
+***Separation into ColumnSchema***
+%%writefile src/feature_engineering/column_schema.py
+"""
+Column schema helper for VSRG ML dataset.
+
+Separates columns into the **five** coherent buckets we now care about:
+
+* **info_non_ml** – identifiers / metadata not used as model inputs
+* **nominal**      – unordered categoricals
+* **ordinal**      – ordered categoricals
+* **numerical**    – continuous / discrete numeric predictors
+* **target**       – label the model tries to predict
+
+All downstream code should reference these accessors instead of hard‑coding
+strings.  The helper also provides validation utilities and PyTest checks so a
+schema / dataset mismatch is caught early.
+"""
+from typing import List, Dict, Literal
+import pandas as pd
+import pytest
+import json
+
+
+class ColumnSchema:
+    # ─────────────────────────────────────────────────────────────────
+    # 1️⃣ Non-ML informational columns (identifiers, metadata)
+    # ─────────────────────────────────────────────────────────────────
+    _INFO_NON_ML: List[str] = [
+        "gameId",
+        "playId",
+        "receiverId",
+        "cbId",
+        "birthDate_x",
+        "birthDate_y",
+        "has_target",
+    ]
+
+    # ------------------------------------------------------------------
+    # 2️⃣ Physical measurements (numeric)
+    # ------------------------------------------------------------------
+    _PHYSICAL_COLS: List[str] = [
+        "rcv_height",
+        "rcv_weight",
+        "cb_height",
+        "cb_weight",
+    ]
+
+    # ─────────────────────────────────────────────────────────────────
+    # OPTIONAL: If you later derive quantile bins for height/weight,
+    # uncomment this and add these to `nominal_cols()` or `ordinal_cols()`.
+    # ─────────────────────────────────────────────────────────────────
+    # _PHYSICAL_BINS: List[str] = [
+    #     "rcv_height_bin",
+    #     "rcv_weight_bin",
+    #     "cb_height_bin",
+    #     "cb_weight_bin",
+    # ]
+
+    # ------------------------------------------------------------------
+    # 3️⃣ Position & context numeric features (unchanged)
+    # ------------------------------------------------------------------
+    _POSITION_COLS: List[str] = [
+        "sep_receiver_cb", "sideline_dist", "pass_rush_sep", "sep_stddev", "hypo_sep",
+        "passLength", "targetX", "targetY", "yardsToGo", "yardline_number", "timeToThrow",
+        "time_rcv", "sep_velocity", "closing_speed", "min_other_sep", "rcv_s", "rcv_o",
+        "cb_s", "cb_o", "leverage_angle", "contest_thresh", "s_max_last1s",
+    ]
+
+    # ------------------------------------------------------------------
+    # ~~~ We are intentionally leaving _OUTCOME_NUMERICAL defined here
+    #     in case you want it for a post‐model pipeline, but it should
+    #     NOT be returned by numerical_cols() anymore. ~~~
+    # ------------------------------------------------------------------
+    _OUTCOME_NUMERICAL: List[str] = [
+        "epa_change",
+        "preWP",
+        "postWP",
+        "wp_delta",
+        "vsrg_overall",
+        "vsrg_oe",
+    ]
+
+    # ------------------------------------------------------------------
+    # 5️⃣ Cluster-style categoricals (unchanged)
+    # ------------------------------------------------------------------
+    _CLUSTER_COLS: List[str] = [
+        "rcv_club",
+        "cb_club",
+    ]
+
+    # ------------------------------------------------------------------
+    # 6️⃣ Ordinal features (unchanged)
+    # ------------------------------------------------------------------
+    _ZONE_COLS: List[str] = [
+        "height_zone",
+        "air_yards_bin",
+        "down",
+        "down_ctx",
+    ]
+
+    # ------------------------------------------------------------------
+    # 7️⃣ Binary/nominal flags & categories (we remove these from training)
+    #    _OUTCOME_CATEGORICAL is still defined but not used in any accessor.
+    # ------------------------------------------------------------------
+    _OUTCOME_CATEGORICAL: List[str] = [
+        "is_contested",
+        "was_tipped",
+        "qb_was_hit",
+        "pass_dir",
+        "yardline_side",
+        "is_play_action",
+        "is_rpo",
+        "passTippedAtLine",
+        "caught_flag",
+        "passResult",
+        "time_imputed",
+    ]
+
+    # ------------------------------------------------------------------
+    # 8️⃣ Route‐encoding + raw route (unchanged)
+    # ------------------------------------------------------------------
+    _ROUTE_COLS: List[str] = [
+        "route_ANGLE", "route_CORNER", "route_CROSS", "route_FLAT",
+        "route_GO", "route_HITCH", "route_IN", "route_OUT",
+        "route_POST", "route_SCREEN", "route_SLANT", "route_WHEEL",
+        "route",
+    ]
+
+    # ------------------------------------------------------------------
+    # 9️⃣ Coverage columns (unchanged)
+    # ------------------------------------------------------------------
+    _COVERAGE_COLS: List[str] = [
+        "cov_2-Man",
+        "cov_Bracket",
+        "cov_Cover 6-Left",
+        "cov_Cover-0",
+        "cov_Cover-1",
+        "cov_Cover-1 Double",
+        "cov_Cover-2",
+        "cov_Cover-3",
+        "cov_Cover-3 Cloud Left",
+        "cov_Cover-3 Cloud Right",
+        "cov_Cover-3 Double Cloud",
+        "cov_Cover-3 Seam",
+        "cov_Cover-6 Right",
+        "cov_Goal Line",
+        "cov_Miscellaneous",
+        "cov_Prevent",
+        "cov_Quarters",
+        "cov_Red Zone",
+    ]
+
+    # ------------------------------------------------------------------
+    # Target (unchanged)
+    # ------------------------------------------------------------------
+    _TARGET_COL: List[str] = ["contested_success"]
+
+    # ------------------------------------------------------------------
+    # Public accessors (modified)
+    # ------------------------------------------------------------------
+
+    def info_non_ml(self) -> List[str]:
+        """Identification / metadata columns (never fed to the model)."""
+        return self._INFO_NON_ML.copy()
+
+    def target_col(self) -> List[str]:
+        return self._TARGET_COL.copy()
+
+    def nominal_cols(self) -> List[str]:
+        """
+        Unordered categorical features. We have removed _OUTCOME_CATEGORICAL
+        to prevent leakage. If you uncomment _PHYSICAL_BINS above, add it here.
+        """
+        return (
+            self._CLUSTER_COLS
+            # + self._PHYSICAL_BINS      # ← Uncomment if you have quantile bins
+            + self._ROUTE_COLS
+            + self._COVERAGE_COLS
+        ).copy()
+
+    def ordinal_cols(self) -> List[str]:
+        """
+        Ordered categories. Examples: height_zone, air_yards_bin, down, down_ctx.
+        """
+        return self._ZONE_COLS.copy()
+
+    def numerical_cols(self) -> List[str]:
+        """
+        Continuous / discrete numeric predictors. We removed _OUTCOME_NUMERICAL
+        so that no post‐play outcome metrics leak into training.
+        """
+        return (self._PHYSICAL_COLS + self._POSITION_COLS).copy()
+
+    def all_features(self) -> List[str]:
+        """Nominal + ordinal + numerical (no target)."""
+        return self.nominal_cols() + self.ordinal_cols() + self.numerical_cols()
+
+    def modelling_columns(self) -> List[str]:
+        """Feature set + target."""
+        return self.all_features() + self.target_col()
+
+    def all_columns(self) -> List[str]:
+        """Every column expected in the ML parquet (info + features + target)."""
+        return self.info_non_ml() + self.modelling_columns()
+
+    def as_dict(self) -> Dict[str, List[str]]:
+        return {
+            "info_non_ml": self.info_non_ml(),
+            "nominal": self.nominal_cols(),
+            "ordinal": self.ordinal_cols(),
+            "numerical": self.numerical_cols(),
+            "target": self.target_col(),
+        }
+
+
+
+# ---------------------------------------------------------------------------
+# Validation helpers --------------------------------------------------------
+# ---------------------------------------------------------------------------
+
+schema = ColumnSchema()
+
+
+def validate_schema(s: ColumnSchema, df_cols: List[str] | None = None) -> None:
+    """Assert bucket invariants and (optionally) match against a dataset."""
+
+    GROUP_FUNCS = [
+        s.info_non_ml,
+        s.nominal_cols,
+        s.ordinal_cols,
+        s.numerical_cols,
+        s.target_col,
+    ]
+
+    buckets = {f.__name__: f() for f in GROUP_FUNCS}
+
+    # 1️⃣ No duplicates within any bucket
+    for name, cols in buckets.items():
+        assert len(cols) == len(set(cols)), f"Duplicates in bucket '{name}'"
+
+    # 2️⃣ Buckets are disjoint (ignore target in overlap check)
+    seen: set[str] = set()
+    for name, cols in buckets.items():
+        if name == "target_col":
+            continue
+        dup = seen.intersection(cols)
+        assert not dup, f"Overlap across buckets: {dup}"
+        seen.update(cols)
+
+    # 3️⃣ Leakage‐keyword check (fail fast if a disallowed column appears)
+    LEAKY_KEYWORDS = ["epa_", "preWP", "postWP", "vsrg_overall", "wp_delta"]
+    for col in s.numerical_cols():
+        for key in LEAKY_KEYWORDS:
+            assert key not in col, f"Leaky column detected in numerical_cols(): {col}"
+
+    # 4️⃣ Optionally compare to dataset headers
+    if df_cols is not None:
+        missing = set(s.all_columns()) - set(df_cols)
+        extra = set(df_cols) - set(s.all_columns())
+        assert not missing, f"Dataset missing columns: {missing}"
+        assert not extra, f"Dataset has unexpected columns: {extra}"
+
+
+
+# ---------------------------------------------------------------------------
+# PyTest checks -------------------------------------------------------------
+# ---------------------------------------------------------------------------
+
+EXPECTED_BUCKET = {
+    **{c: "info_non_ml" for c in schema.info_non_ml()},
+    **{c: "nominal"    for c in schema.nominal_cols()},
+    **{c: "ordinal"    for c in schema.ordinal_cols()},
+    **{c: "numerical"  for c in schema.numerical_cols()},
+    **{c: "target"     for c in schema.target_col()},
+}
+
+
+BUCKET_FUNCS = {
+    "info_non_ml": schema.info_non_ml,
+    "nominal": schema.nominal_cols,
+    "ordinal": schema.ordinal_cols,
+    "numerical": schema.numerical_cols,
+    "target": schema.target_col,
+}
+
+
+@pytest.mark.parametrize("col,expected_bucket", EXPECTED_BUCKET.items())
+def test_column_in_expected_bucket(col, expected_bucket):
+    cols = BUCKET_FUNCS[expected_bucket]()
+    assert col in cols, f"{col} missing from {expected_bucket} bucket"
+
+    for bucket, func in BUCKET_FUNCS.items():
+        if bucket != expected_bucket:
+            assert col not in func(), f"{col} incorrectly present in {bucket} bucket"
+
+
+
+
+# ---------------------------------------------------------------------------
+# Smoke script --------------------------------------------------------------
+# ---------------------------------------------------------------------------
+
+if __name__ == "__main__":
+    schema = ColumnSchema()
+    # Single-bucket constants (immutable copies)
+    INFO_NON_ML= schema.info_non_ml()
+    NOMINAL = schema.nominal_cols()
+    ORDINAL = schema.ordinal_cols()
+    NUMERICAL = schema.numerical_cols()
+    TARGET = schema.target_col()
+
+    print("INFO_NON_ML", INFO_NON_ML)
+    print("NOMINAL", NOMINAL)
+    print("ORDINAL", ORDINAL)
+    print("NUMERICAL", NUMERICAL)
+    print("TARGET", TARGET)
+
+    print("schema", schema)
+
+
+
+
+***visualization utils we used to understand the data and be able to validate the data:
+    # Visualizations
+    plot_play_snapshot(tr, meta_row)
+    animate_play(tr, receiverId=meta_row['receiverId'])
+    plot_contested_heatmap(ml_df)
+    plot_contested_heatmap(ml_df, zone=meta_row['height_zone'])
+
+    # Prepare VSRG long table for radar
+    vsrg_df = (
+        ml_df.groupby(['receiverId','height_zone'])
+             .agg(success_rate=('contested_success','mean'))
+             .reset_index()
+    )
+    vsrg_df['vsrg_zone'] = (vsrg_df['success_rate']*100).round().astype(int)
+    plot_vsrg_radar(vsrg_df, receiverId=meta_row['receiverId'])
+
+    plot_epa_vsr_scatter(ml_df)
+    plot_sep_over_time(tr, receiverId=meta_row['receiverId'])
+    plot_route_facet(ml_df)
+
+
+
+
+****EDA****
+| Function                                | Role/What It Computes                                                                                                           | Output Type                                                                      |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `summary_stats(df)`                     | Basic descriptive stats + missing counts + categorical distributions                                                            | `dict` containing `'desc'`, `'missing'`, `'unique'`, `'cat_counts'`              |
+| `plot_missing(df, sample)`              | Visual missing‐value matrix (sampled)                                                                                           | A plotted matrix (no return)                                                     |
+| `missingness_summary(df, schema)`       | Print & bar‐plot of missing counts/percent per schema column                                                                    | Printed table + horizontal bar chart (no return)                                 |
+| `correlation_matrix(df, method)`        | Compute and plot correlation matrix for numeric columns                                                                         | Correlation DataFrame + plotted heatmap                                          |
+| `distribution_grid(df, schema, ncols)`  | Grid of histograms (with KDE) for every numeric feature                                                                         | Multiple plotted histograms (no return)                                          |
+| `distribution_plots(df, cols, kde)`     | Individual histograms for a specified small list of columns                                                                     | One plot per column (no return)                                                  |
+| `normalization_checks(df, sample_size)` | Compare raw vs Z‐score vs MinMax for first four numeric columns                                                                 | Three subplots per feature (no return)                                           |
+| `statistical_tests(df, cols)`           | Pearson r+p for every numeric pair + Shapiro–Wilk for first five                                                                | Printed correlation/p‐values & normality tests (no return)                       |
+| `bucket_df(df, bucket, schema)`         | Extract only the specified bucket’s columns from `df`                                                                           | Sub‐DataFrame with just those columns                                            |
+| `ecp_eda(plays, tracking)`              | Stub to compute (fake) nearest‐defender distance                                                                                | DataFrame with `['gameId','playId','targetX','targetY','nearest_defender_dist']` |
+| `vsrg_eda(ml_df, schema)`               | Aggregate contested catch success by `height_zone`                                                                              | DataFrame with columns `[height_zone, n_plays, success_rate]`                    |
+| `sci_eda(ml_df, schema)`                | For each play, compute mean & variance of all `sep_*` features                                                                  | DataFrame with `gameId, playId, <sep>_mean, <sep>_var, ...`                      |
+| **Smoke Test (main)**                   | Runs everything end‐to‐end—loads data, prints schema, then calls all above functions in sequence, plotting or printing results. | N/A (but you see console output + plots for each step)                           |
+
+EDA output:
+Below is a concise recap of the key outputs you shared, organized by each block of results.
+
+---
+
+### 1. Warning about `time_rcv`
+
+```
+WARNING:__main__:statistical_tests: Skipping 1 columns because they are missing or not numeric:
+  time_rcv (non-numeric dtype: datetime64[ns])
+```
+
+* **What it means**: Your `statistical_tests` function expected all columns listed to be numeric, but `time_rcv` was a datetime. As a result, it was excluded from both the Pearson correlations and Shapiro–Wilk tests.
+
+---
+
+### 2. VSRG Summary by `height_zone`
+
+```
+INFO:__main__:VSRG summary by height_zone:
+  height_zone  n_plays  success_rate
+0        high      101      0.336634
+1         low      167      0.526946
+2         mid      312      0.503205
+```
+
+* **Interpretation**:
+
+  * In **high** vertical zones, there were 101 contested catches, with a success rate of \~33.7%.
+  * In **mid** vertical zones, 312 plays yielded a \~50.3% success rate.
+  * In **low** vertical zones, 167 plays yielded a \~52.7% success rate.
+* **Takeaway**: Receivers were most successful on contested targets when the ball was in a low or mid zone (\~50–53% success) and struggled more in “high” zones (\~34% success).
+
+---
+
+### 3. SCI (Separation Consistency Index) Sample Output
+
+```
+INFO:__main__:SCI summary (n rows = 580):
+       gameId  playId  sep_receiver_cb_mean  sep_receiver_cb_var  \
+0  2022090800    1609              0.784474                  NaN   
+1  2022090800    2623              0.408167                  NaN   
+2  2022090800    2733              1.180042                  NaN   
+3  2022091100    2159              0.754520                  NaN   
+4  2022091100    2533              0.495782                  NaN   
+
+   sep_stddev_mean  sep_stddev_var  sep_velocity_mean  sep_velocity_var  
+0              0.0             NaN          -0.399784               NaN  
+1              0.0             NaN          -2.575291               NaN  
+2              0.0             NaN           1.431249               NaN  
+3              0.0             NaN          -0.087374               NaN  
+4              0.0             NaN          -0.817126               NaN  
+```
+
+* **What you see**:
+
+  * For each `(gameId, playId)`, the code has computed `mean` and `var` of all “sep\_…” columns.
+  * In this snippet, `sep_receiver_cb_var`, `sep_stddev_var`, and `sep_velocity_var` are all `NaN`, which indicates that—within each grouping—there was only one data point (so variance is undefined).
+  * Means of `sep_receiver_cb`, `sep_stddev`, and `sep_velocity` are shown for those plays.
+* **Takeaway**:
+
+  * You got 580 unique `(gameId, playId)` rows overall.
+  * Whenever a play had just a single “sep\_\*” measurement, the variance columns stayed `NaN`; you’ll need at least two separation values per play to get a real variance.
+
+---
+
+### 4. Pearson Correlation P-Values (Selected Highlights)
+
+```
+=== Pearson p-values ===
+rcv_height vs rcv_weight: r=0.75, p=0.000
+rcv_height vs cb_height: r=0.10, p=0.020
+rcv_height vs cb_weight: r=0.12, p=0.004
+...
+rcv_height vs contest_thresh: r=1.00, p=0.000
+...
+rcv_s vs cb_s: r=0.83, p=0.000
+...
+cb_s vs s_max_last1s: r=0.73, p=0.000
+...
+passLength vs s_max_last1s: r=0.56, p=0.000
+...
+closing_speed vs cb_s: r=0.48, p=0.000
+...
+```
+
+* **Strongest correlations**:
+
+  * **Receiver height vs receiver weight** (`r=0.75`, p<0.001)
+  * **Receiver height vs contest threshold** (`r=1.00`, p<0.001). A perfect correlation here likely indicates that `contest_thresh` was defined directly from `rcv_height`.
+  * **Receiver separation speed (`rcv_s`) vs cornerback separation speed (`cb_s`)** (`r=0.83`, p<0.001). Those two speeds track closely.
+  * **Cornerback speed vs s\_max\_last1s** (`r=0.73`, p<0.001).
+  * **passLength vs s\_max\_last1s** (`r=0.56`, p<0.001).
+  * **closing\_speed vs cb\_s** (`r=0.48`, p<0.001).
+* **Moderate/Weak correlations**:
+
+  * Many other pairs (e.g., `rcv_height` vs `cb_height` at `r=0.10, p=0.020`) are technically significant (p<0.05) but the effect size is small (r≈0.10).
+  * Some variables like `hypo_sep` vs `min_other_sep` show `r=1.00, p=0.000`—again implying they might be computed from the same underlying data or thresholds.
+* **What to watch**:
+
+  * Perfect or near‐perfect correlations (r≈1.00) indicate duplicate information. For instance, if `contest_thresh` was deterministically derived from `rcv_height`, you should keep only one.
+  * Highly collinear features will inflate variance in downstream models, so consider dropping or combining them.
+
+---
+
+### 5. Shapiro–Wilk Normality Tests (First Five Numeric Columns)
+
+```
+=== Shapiro-Wilk Normality ===
+rcv_height: W=0.95, p=8.89e-12
+rcv_weight: W=0.97, p=2.08e-08
+cb_height: W=0.97, p=4.55e-09
+cb_weight: W=0.87, p=1.22e-19
+sep_receiver_cb: W=0.99, p=0.000124
+```
+
+* **Interpretation**:
+
+  * All five tested features have p ≪ 0.05. That means we reject the null hypothesis of “data are normally distributed” for each.
+  * Even though `sep_receiver_cb` is closer to normal (`W=0.99`), p=0.000124 still indicates significant departure from Gaussian if we strictly use Shapiro’s cutoff.
+* **Takeaway**:
+
+  * None of these first five features can be treated as strictly Gaussian. If a modeling step assumes normality (e.g., linear regression on raw values), you may need transformations (e.g., log, box-cox) or robust methods (e.g., tree-based models).
+
+---
+
+### 6. ECP Sample Output (Stubbed)
+
+```
+ECP sample:
+        gameId  playId  targetX  targetY  nearest_defender_dist
+0  2022102302    2655    36.69    16.51                    0.0
+1  2022091809    3698    20.83    20.49                    0.0
+2  2022103004    3146    26.02    17.56                    0.0
+3  2022110610     348    38.95    14.19                    0.0
+4  2022102700    2799      NaN      NaN                    NaN
+```
+
+* **What you see**:
+
+  * Columns are `[gameId, playId, targetX, targetY, nearest_defender_dist]`.
+  * Every `nearest_defender_dist` is `0.0`, because the actual nearest‐defender calculation was not yet implemented (it was a placeholder).
+  * The last row has `targetX` and `targetY` as `NaN`, leading to `nearest_defender_dist = NaN`.
+* **Takeaway**:
+
+  * You’ll need to replace the placeholder with real spatial logic: compute actual Euclidean distance from the intended receiver’s `(targetX, targetY)` to the nearest defensive back at the moment of catch. Until then, ECP remains uninformative.
+
+---
+
+### 7. Repeated VSRG Summary (Reaffirmed)
+
+```
+VSRG height-zone summary:
+  height_zone  n_plays  success_rate
+0        high      101      0.336634
+1         low      167      0.526946
+2         mid      312      0.503205
+```
+
+* **Recall**:
+
+  * **Low zone** (\~0–some threshold): \~53% success.
+  * **Mid zone**: \~50% success.
+  * **High zone**: \~34% success.
+* **Actionable insight**:
+
+  * Deep contested high‐point throws are far less likely to succeed (\~1/3) than mid/low contested targets (\~1/2).
+  * You might weight high‐zone catches differently if you were building a “difficulty‐adjusted” metric.
+
+---
+
+### 8. Repeated SCI Sample
+
+```
+SCI separation summary:
+       gameId  playId  sep_receiver_cb_mean  sep_receiver_cb_var  \
+0  2022090800    1609              0.784474                  NaN   
+1  2022090800    2623              0.408167                  NaN   
+2  2022090800    2733              1.180042                  NaN   
+3  2022091100    2159              0.754520                  NaN   
+4  2022091100    2533              0.495782                  NaN   
+
+   sep_stddev_mean  sep_stddev_var  sep_velocity_mean  sep_velocity_var  
+0              0.0             NaN          -0.399784               NaN  
+1              0.0             NaN          -2.575291               NaN  
+2              0.0             NaN           1.431249               NaN  
+3              0.0             NaN          -0.087374               NaN  
+4              0.0             NaN          -0.817126               NaN  
+```
+
+* **As before**:
+
+  * Per‐play “mean” of each `sep_…` feature is populated, but the “var” column stays `NaN` whenever only a single measurement existed for that play.
+* **Implications**:
+
+  * If you want a meaningful “variance of separation” for each play, you need at least two separation measurements per play. Otherwise, you’ll always see `NaN`.
+
+---
+
+## Overall Takeaways
+
+1. **Missing/Skipped Columns**
+
+   * Only `time_rcv` was skipped in the statistical tests—nothing else major was missing.
+   * The ECP stub still needs real “nearest defender” logic.
+
+2. **Vertical Success Rate Grade (VSRG)**
+
+   * **Low vs Mid vs High** zones: success rates of \~0.53, 0.50, and 0.34, respectively.
+   * Catches in the “high” zone are significantly harder: nearly one‐third success only.
+
+3. **Separation Consistency Index (SCI)**
+
+   * You have per-play means for every `sep_…` feature.
+   * Variance columns remain `NaN` until you collect multiple separation points per play.
+
+4. **Correlations**
+
+   * Strong collinearity among any variables derived from the same underlying measure:
+
+     * `rcv_height` vs `contest_thresh` (r=1.00)
+     * `rcv_s` vs `cb_s` (r=0.83)
+     * `cb_s` vs `s_max_last1s` (r=0.73)
+   * Receiver and cornerback physical attributes (height & weight) are moderately correlated (r≈0.10–0.30 for cross‐pos pairs; r≈0.75 for same‐pos pairs).
+   * Many p-values are < 0.05 because of large sample size, but effect sizes vary. Focusing on |r| > 0.5 helps isolate truly strong relationships.
+
+5. **Normality Tests**
+
+   * None of the first five numeric features pass Shapiro–Wilk. All p ≪ 0.05.
+   * Therefore, these distributions deviate from Gaussian and likely need transformation or robust modeling.
+
+6. **ECP Stub**
+
+   * Output for `nearest_defender_dist` is currently 0 or NaN—needs real tracking data logic.
+   * Until implemented, any ECP analysis will not be meaningful.
+
+---
+
+### Next Steps Based on These Results
+
+1. **Drop/Combine Collinear Features**
+
+   * Remove one of each pair that shows r ≈ 1.00 (e.g., keep either `rcv_height` or `contest_thresh`, not both).
+   * For high but not perfect correlations (r > 0.8), consider PCA or drop one if they don’t add unique predictive power.
+
+2. **Address Non-Gaussian Features**
+
+   * For features like `rcv_height`, `rcv_weight`, `cb_weight`, etc., try log/box-cox transformations if needed, or rely on tree‐based models that don’t assume normality.
+
+3. **Fill in Real ECP Logic**
+
+   * Replace the placeholder in `ecp_eda` with an actual “find nearest defender” routine using tracking coordinates. That will give you nonzero distances to analyze.
+
+4. **Ensure Multiple Separation Points per Play for SCI**
+
+   * If your EDA pipeline only generates one separation measure per play, redesign it to capture multiple timestamps (e.g., separation at 0.1 sec, 0.2 sec) so the variance is meaningful.
+
+5. **Leverage VSRG Insights**
+
+   * Since high‐zone targets are hardest to defend, you might create a feature like `zone_diff = success_rate(zone) - baseline` (e.g., subtract \~0.33 when zone=high, subtract \~0.50 when zone=mid/low) to normalize difficulty.
+
+With these summaries and next-step recommendations, you can refine your feature engineering and modeling strategy.
+
+
+
+
+
+****Preprocessing overview****
+Below is a step-by-step explanation of how the `preprocess.py` module transforms raw DataFrame inputs into a numeric feature matrix (and back) for modeling. Wherever possible, I’ve grouped related operations into logical “stages” and indicated how each function contributes.
+
+---
+
+## 1. Utility Functions
+
+### 1.1 `_ensure_dense(mat)`
+
+* **Purpose**: Guarantees that any sparse output (e.g., from one-hot encoding) becomes a dense NumPy array before downstream use.
+* **Logic**:
+
+  * If `mat` is a SciPy sparse matrix, call `.toarray()`; otherwise, return `mat` unchanged.
+
+### 1.2 `_check_binary_target(df, target_col, debug=False)`
+
+* **Purpose**: Verifies that the column named `target_col` in `df` is strictly binary (0/1). If it’s stored as floats (0.0/1.0), it casts to integer.
+* **Steps**:
+
+  1. Inspect the dtype of `df[target_col]`.
+
+     * If integer/boolean, do nothing.
+     * If float, check that all non‐missing values are exactly 0.0 or 1.0; if so, cast to `int`. Otherwise, raise `ValueError`.
+     * If any other dtype, raise `ValueError`.
+  2. After ensuring integer dtype, confirm that the set of unique non‐missing values is exactly `{0, 1}`; otherwise raise `ValueError`.
+  3. If `debug=True`, print diagnostic messages at each step.
+
+---
+
+## 2. Outlier/“Extreme” Filtering
+
+Before any feature‐encoding pipelines run, we drop rows whose target value lies outside some acceptable bounds. Two functions collaborate here:
+
+### 2.1 `compute_clip_bounds(series, method="quantile", quantiles=(0.01,0.99), std_multiplier=3.0, debug=False)`
+
+* **Purpose**: Given a single Pandas Series of numeric values (often the target column), compute a lower/upper pair of cutoffs but do *not* apply them yet.
+* **Available Methods**:
+
+  1. **Quantile (“quantile”)**:
+
+     * Drop missing values, convert to float64, then compute the requested quantiles (e.g. 1% and 99%).
+     * Returns `(lower_quantile, upper_quantile)`.
+  2. **Mean ± Std (“mean\_std”)**:
+
+     * Returns `(mean − std_multiplier⋅σ, mean + std_multiplier⋅σ)`.
+  3. **IQR (“iqr”)**:
+
+     * Let Q₁ and Q₃ be 25th/75th percentiles; set IQR = Q₃ − Q₁, then return `(Q₁ − 1.5·IQR, Q₃ + 1.5·IQR)`.
+* **Non-numeric Case**: If dtype isn’t numeric, immediately return `(None, None)` (and optionally log via `debug`).
+
+### 2.2 `filter_and_clip(df, lower=None, upper=None, quantiles=(0.01,0.99), debug=False)`
+
+* **Purpose**: Remove (drop) any row whose target value is outside `[lower, upper]`.
+* **Detailed Flow**:
+
+  1. **Identify Target Column**
+
+     * Instantiate `ColumnSchema()` and call `.target_col()[0]` to get the single target column name (e.g. `"contested_success"`).
+  2. **Compute Bounds if Needed**
+
+     * If `lower` or `upper` is `None`, call `compute_clip_bounds` on `df[TARGET]` with the given quantiles (default: 1%/99%).
+     * Fill in missing `lower`/`upper` from the result.
+     * If `debug=True`, print the computed cutoffs and number of rows before/after filtering.
+  3. **Filter Rows**
+
+     * Build a boolean mask: `df[TARGET].between(lower, upper)`.
+     * Return `(df_filtered, (lower, upper))`.
+     * `df_filtered` contains only rows with `TARGET` in `[lower, upper]`.
+
+In practice, this step effectively removes outliers from the training set (and, later, from any new data passed to `transform_preprocessor`), ensuring that extreme target values do not distort the model.
+
+---
+
+## 3. “Fit” Stage: `fit_preprocessor(...)`
+
+This is the core function that takes a **cleaned** DataFrame and fits a `ColumnTransformer` pipeline to produce:
+
+1. A dense NumPy matrix `X_mat` of transformed features
+2. A Series `y` containing the binary target values
+3. The fitted `ColumnTransformer` object `ct`, so we can reuse it later on new data.
+
+Below is a breakdown of each sub-step:
+
+### 3.1 Schema & Feature List Discovery
+
+1. **Instantiate `ColumnSchema()`**
+
+   * This object knows the full set of expected columns, broken into categories:
+
+     * `numerical_cols()`
+     * `ordinal_cols()`
+     * `nominal_cols()`
+     * `target_col()`
+2. **Collect Available Features**
+
+   * From the raw input `df`, build three filtered lists:
+
+     * `all_num_feats`: numeric features in both `ColumnSchema().numerical_cols()` *and* present in `df.columns`, excluding the target.
+     * `all_ord_feats`: ordinal features present in `df.columns`.
+     * `all_nom_feats`: nominal (categorical) features present in `df.columns`.
+3. **Sanity Warning**
+
+   * If the total number of features (numeric + ordinal + nominal) ≤ 1, emit a warning that there may not be enough columns for a meaningful transform.
+
+### 3.2 Domain Cleaning & Clipping
+
+* **Call** `filter_and_clip(df, quantiles, debug)`
+
+  * This drops extreme‐target rows and returns an updated `df` plus the `(lower, upper)` cutoffs.
+  * Under the hood, the target column is determined via `ColumnSchema().target_col()[0]`, and any rows whose target lies outside the computed 1st/99th percentile (by default) are removed.
+
+### 3.3 Recheck Schema After Filtering
+
+* Recompute the three feature lists (`all_num_feats`, `all_ord_feats`, `all_nom_feats`) on the filtered `df`.
+* If `debug=True`, print out the “actual” numeric, ordinal, and nominal sets that will be used.
+
+### 3.4 Numeric Coercion
+
+* For every column in `all_num_feats`, force `df[col] = pd.to_numeric(df[col], errors="coerce")`.
+
+  * Any invalid strings become `NaN`.
+
+### 3.5 Build Feature Matrix `X` and Target `y`
+
+* **X** ← `df[all_num_feats + all_ord_feats + all_nom_feats].copy()`
+* **y** ← `df[TARGET].astype(int)`
+
+  * Ensures the target is integer 0/1.
+* **Check Binary**: Immediately run `_check_binary_target(df, TARGET, debug)` to verify no malformed target values remain.
+
+### 3.6 Construct Per-Column Pipelines
+
+#### 3.6.1 Ordinal Pipeline (if `all_ord_feats` is nonempty)
+
+1. **Convert all ordinal columns to string**, then mask `NaN` rows so that missing entries become actual `NaN` objects (not empty strings).
+2. **Determine Category Order**
+
+   * For each ordinal column `c`, collect the unique non-missing values, then append a sentinel value `"MISSING"`.
+   * The `OrdinalEncoder` will learn this ordering (so that missing values all map to the same integer).
+3. **Build `ordinal_pipe`**
+
+   * A two-step `Pipeline([...])`:
+
+     1. `SimpleImputer(strategy="constant", fill_value="MISSING")` → fills any missing string with `"MISSING"`.
+     2. `OrdinalEncoder(categories=ordinal_categories, handle_unknown="use_encoded_value", unknown_value=-1, dtype="int32")`
+   * If any row had ordinal `NaN`, also inject a `MissingIndicator` in the final `ColumnTransformer`.
+
+#### 3.6.2 Numeric Pipeline (if `all_num_feats` is nonempty)
+
+* **Choose Imputer Type** based on `model_type`:
+
+  * If `"linear"`, use `SimpleImputer(strategy="median", add_indicator=True)`.
+  * Otherwise, use `IterativeImputer(random_state=0, add_indicator=True)` (to allow more sophisticated missing‐value imputation).
+* **Build `numeric_pipe`**:
+
+  * Pipeline:
+
+    1. `("impute", num_imputer)`
+    2. `("scale", StandardScaler())`
+
+#### 3.6.3 Nominal Pipeline (if `all_nom_feats` is nonempty)
+
+* Always use a two-step pipeline:
+
+  1. `SimpleImputer(strategy="constant", fill_value="MISSING")` → replace missing strings with `"MISSING"`.
+  2. `OneHotEncoder(drop="first", handle_unknown="ignore", sparse_output=False)` → produce a **dense** array of one-hot indicators and drop the first category to avoid perfect multicollinearity.
+
+### 3.7 Assemble the `ColumnTransformer`
+
+* **Initialize** an empty list `transformers = []`.
+* **If** `numeric_pipe` exists and `all_num_feats` is nonempty, append
+
+  ```
+  ("num", numeric_pipe, all_num_feats)
+  ```
+* **If** there are ordinal features:
+
+  * **If** at least one missing value exists in any ordinal column (i.e. `X[all_ord_feats].isna().any(axis=1).any()`), then:
+
+    1. Append `("ord_ind", MissingIndicator(missing_values=np.nan), all_ord_feats)`.
+    2. Append `("ord", ordinal_pipe, all_ord_feats)`.
+  * **Else**, just append `("ord", ordinal_pipe, all_ord_feats)`.
+* **If** `all_nom_feats` is nonempty, append
+
+  ```
+  ("nom", nominal_pipe, all_nom_feats)
+  ```
+* **Finally**, create the `ColumnTransformer` itself:
+
+  ```python
+  ct = ColumnTransformer(
+      transformers,
+      remainder="drop",
+      verbose_feature_names_out=False,
+  )
+  ```
+
+### 3.8 Fit & Transform into Dense Matrix
+
+* **Store Cutoffs**: Annotate `ct.lower_ = lower` and `ct.upper_ = upper` so we remember how to filter future data.
+* **Call** `X_mat = ct.fit_transform(X, y)`
+
+  * Performs all imputations, scaling, ordinal encoding, and one-hot encoding.
+* **Force Dense**: `X_mat = _ensure_dense(X_mat)`
+
+  * Ensures that even if any pipeline produced a sparse submatrix, the final result is a plain NumPy array.
+* **Return** `(X_mat, y, ct)`
+
+At this point, you have:
+
+* `X_mat`: a dense `(n_rows × n_features_total)` NumPy array.
+* `y`: a Pandas Series of shape `(n_rows,)` containing 0/1 labels.
+* `ct`: a fitted `ColumnTransformer` with attributes:
+
+  * `.lower_`, `.upper_` (used for future clipping),
+  * `.transformers_` / `.named_transformers_` ready for `transform`,
+  * `.feature_names_out()` can list the new encoded feature names if needed.
+
+---
+
+## 4. “Transform” Stage: `transform_preprocessor(df, transformer)`
+
+When you have new/non-training data (e.g., a validation or test set), call this function to apply the same pipeline:
+
+1. **Determine Target Name**
+
+   * Again call `ColumnSchema().target_col()[0]` to know which column is the label.
+2. **Filter & Clip Using Stored Bounds**
+
+   * Invoke `filter_and_clip(df, lower=transformer.lower_, upper=transformer.upper_)`.
+   * This drops rows whose target lies outside the original training’s `[lower, upper]`.
+3. **Re-derive Feature Lists** (numeric/ordinal/nominal)
+
+   * Identical logic to the fit stage: only keep columns that still exist in `df.columns`.
+4. **Coerce Numeric Columns** to numeric with `pd.to_numeric(errors="coerce")`.
+5. **Build `X = df[all_num_feats + all_ord_feats + all_nom_feats].copy()`**.
+6. **Ordinal Missing Replacement**
+
+   * Convert ordinal columns to string, then replace any `NaN` with `"MISSING"` (so that the encoder’s categories match what was seen at fit time).
+7. **Build `y = df[TARGET].astype(int)`**.
+8. **Call** `X_mat = transformer.transform(X)`
+
+   * Each sub-estimator in `transformer` is already fitted, so you get exactly the same scaled/imputed/encoded features.
+9. **Force Dense**: `X_mat = _ensure_dense(X_mat)`
+10. **Return** `(X_mat, y)`.
+
+---
+
+## 5. “Inverse‐Transform” Stage: `inverse_transform_preprocessor(X_trans, transformer)`
+
+Occasionally you need to take a numeric feature matrix back into “original column form” (for debugging, or for ensuring no unexpected preprocessing happened). This method does that by reversing each block of the `ColumnTransformer` *where possible*:
+
+1. **Reconstruct Original Column Order**
+
+   * Iterate `for name, _, cols in transformer.transformers_:`
+   * If `cols=='drop'`, skip. Otherwise, append those column names to `orig_features`.
+
+2. **Loop Block-by-Block**
+   For each `(name, trans, cols)` in `transformer.transformers_`:
+
+   * Retrieve the fitted sub-estimator: `fitted = transformer.named_transformers_[name]`.
+   * Build a one-row dummy array of length `len(cols)` filled with zeros; pass it through `fitted.transform(dummy)` (inside a warning-suppression block) to discover how many columns—call that `n_out`—this block actually produced at transform time.
+   * Slice the real `X_trans[:, start : start + n_out]` to grab that block of transformed data; increment `start += n_out`.
+   * **Inverse Logic**:
+
+     * If the block was produced by a `MissingIndicator`, skip (no inverse available).
+     * If `trans=='passthrough'`, simply keep the block as-is.
+     * If the block name is `'num'` (i.e. numeric pipeline), then:
+
+       1. If `block` is sparse, convert to dense.
+       2. Send it through the `StandardScaler.inverse_transform(...)` sub-step to recover the imputed, unscaled values.
+       3. Discard any “missing‐indicator” column that was introduced by the imputer’s `add_indicator=True`.
+     * Otherwise (any other pipeline, e.g. ordinal or one-hot):
+
+       1. If `block` is sparse, make it dense.
+       2. If `fitted` is a `Pipeline`, identify its final step (usually an encoder with an `inverse_transform` method) and pass `block` through `inverse_transform`.
+       3. Otherwise, if the fitted object isn’t a `Pipeline` (but has `inverse_transform`), call that directly.
+   * Wrap the inverted block into a `pd.DataFrame(inv, columns=cols)` and append to a list `parts`.
+
+3. **Concatenate All Parts**
+
+   * `df_orig = pd.concat(parts, axis=1)`
+   * Reorder columns in `df_orig` to match `orig_features`.
+   * Return `df_orig`, which now has the same column names (and approximate values) as the original input `X` before any transforms.
+
+*Note: Any columns dropped by the transformer or any feature built only for modeling (e.g., missing‐indicator columns) do not reappear in `df_orig`.*
+
+---
+
+## 6. Convenience for Hierarchical/Mixed Models: `prepare_for_mixed_and_hierarchical(df)`
+
+Some downstream models (e.g., Bayesian hierarchical or mixed-effects) expect certain categorical indices or grouping variables. This helper function takes a DataFrame that already has a numeric “target” column and:
+
+1. **Clip/Filter Extremes** (again)
+
+   * Call `filter_and_clip(df.copy())` using default quantiles.
+2. **Encode “batter\_id” as Category**
+
+   * `df_clean["batter_id"] = df_clean["batter_id"].astype("category")`
+   * This lets a hierarchical model treat each batter as a random effect.
+3. **Encode “season”**
+
+   * `df_clean["season_cat"] = df_clean["season"].astype("category")`
+   * `df_clean["season_idx"] = df_clean["season_cat"].cat.codes`
+   * The numeric `season_idx` can be fed into a model as a grouping index.
+4. **Encode “pitcher\_id”**
+
+   * `df_clean["pitcher_cat"] = df_clean["pitcher_id"].astype("category")`
+   * `df_clean["pitcher_idx"] = df_clean["pitcher_cat"].cat.codes`
+
+Return the augmented `df_clean`. At that point, each row still has its original columns (minus outliers) plus new integer‐coded indices for each group.
+
+---
+
+## 7. Smoke-Test Block (`if __name__ == "__main__":`)
+
+When you run `python preprocess.py` directly, the script will:
+
+1. **Load Base Data** via `load_base_data()` (plays, players, etc.).
+2. **Instantiate `ColumnSchema()` and print out its as\_dict() form**.
+3. **Load an FE (feature engineering) dataset** from a Parquet file.
+4. **Filter to only contested plays** (`ml_df[ml_df['is_contested']==1]`).
+5. **Select columns**: `NUMERICAL + NOMINAL + ORDINAL + TARGET`.
+6. **Split into train/test** via `train_test_split(..., random_state=42)`.
+7. **Call** `fit_preprocessor(train_df, model_type='linear', debug=True)` and print shapes.
+8. **Call** `transform_preprocessor(test_df, tf)` and print shapes.
+9. **Demonstrate** `inverse_transform_preprocessor` on `X_train_np` to show the original feature values.
+
+This block simply confirms that:
+
+* The schema is valid.
+* The preprocessing pipeline runs without errors on a small example.
+* Inverse transformation recovers the approximate original DataFrame.
+
+---
+
+## 8. Overall Workflow Summary
+
+Putting it all together, here is the **end-to-end data-preprocessing flow**:
+
+1. **Input DataFrame** (with raw columns, including features + a binary target).
+
+2. **Call** `fit_preprocessor(df, model_type, debug=False)`
+   a. Internally:
+
+   * Drop outliers from the target via `filter_and_clip`.
+   * Confirm target is binary (0/1).
+   * Coerce numeric columns.
+   * Build separate pipelines for numeric, ordinal, and nominal features (median/iterative imputation + scaling, ordinal encoding, one-hot encoding).
+   * Fit a `ColumnTransformer` that stitches these pipelines together.
+   * Transform the entire training set into a dense NumPy array `X_mat`.
+     b. **Returns**: `(X_mat, y_series, fitted_transformer)`.
+
+3. **Train Your Model** on `(X_mat, y_series)`.
+
+4. **New Data (Validation/Test)**:
+
+   * When you have held-out data in identical column format, call `transform_preprocessor(new_df, fitted_transformer)`.
+   * Internally:
+
+     * Clip outliers using the same cutoffs stored in `fitted_transformer.lower_` & `.upper_`.
+     * Recoerce numeric columns, fill missing ordinals with `"MISSING"`.
+     * Call `fitted_transformer.transform(X_new)` to produce a dense array.
+   * **Returns**: `(X_new_mat, y_new_series)` for evaluation.
+
+5. **Optional Inverse-Transform**: If you ever need to “see” what the numeric array maps back to in terms of original column names (e.g., for sanity checks or partial interpretation), call `inverse_transform_preprocessor(X_trans, fitted_transformer)`. This reconstructs a Pandas DataFrame whose columns match the original raw features (before imputation/scaling/encoding).
+
+6. **Hierarchical/Mixed-Effects Prep**: If your downstream model requires per-group indices (e.g., by batter or by season), call `prepare_for_mixed_and_hierarchical(df)` first to attach categorical codes:
+
+   * Applies the same outlier clipping as above.
+   * Converts `batter_id`, `season`, and `pitcher_id` into `category` dtype and adds integer indices.
+
+---
+
+### Key Takeaways
+
+* **Outlier Control**: All data passed into the pipelines is first “clipped” on the target, ensuring extreme values (below the 1st or above the 99th percentile by default) are removed.
+* **ColumnSchema-Driven**: The lists of numeric, ordinal, nominal, and target columns come from a single `ColumnSchema()` object, so changing the schema only requires updating one place.
+* **Flexible Imputation**:
+
+  * Numeric features use either median imputation or iterative imputation (plus an “is\_missing” indicator).
+  * Ordinal features become strings, with missing values replaced by `"MISSING"`, then encoded via `OrdinalEncoder`.
+  * Nominal features are one-hot encoded (dense) with a constant `"MISSING"` fill for any nulls.
+* **Dense Output Guarantee**: Immediately after `fit_transform` or `transform`, we call `_ensure_dense(...)` so that no part of the rest of the stack ever needs to handle sparse matrices.
+* **Symmetric Fit/Transform API**:
+
+  * `fit_preprocessor(...)` → learns imputers/scalers/encoders on training data.
+  * `transform_preprocessor(...)` → applies the exact same transformations (and re-clips extremes).
+  * `inverse_transform_preprocessor(...)` → recovers original feature values for debugging/inspection.
+* **Hierarchical Prep** is a small helper to add categorical codes for any downstream mixed-effects or Bayesian hierarchical model.
+
+With this summary, you can see exactly how raw tabular input becomes a ready-to-use NumPy array (or is inverted back to original columns) for any binary-classification model or hierarchical analysis.
+
+
+
+
+
+
+
+
+***Feature importance***
+summary: we take the shapiq, shap, and permutation importances and use them to select the top 10 features for review
+we also utilize each of these to filter out any unimportant features
+
+
+✅ Shapley interaction importances computed.
+
+🔹 Top 10 SHAPIQ Interaction Importances (legacy):
+        feature  interaction_importance
+  closing_speed                0.126295
+sep_receiver_cb                0.109953
+   s_max_last1s                0.089853
+           cb_o                0.074807
+      cb_weight                0.071047
+  min_other_sep                0.069601
+   sep_velocity                0.067229
+ leverage_angle                0.067060
+          rcv_s                0.065644
+    timeToThrow                0.062332
+
+🔹 Top 10 Permutation Importances:
+        feature  importance_mean
+  closing_speed         0.231526
+sep_receiver_cb         0.136844
+   s_max_last1s         0.094398
+   sep_velocity         0.076928
+  min_other_sep         0.073383
+           cb_o         0.072191
+    timeToThrow         0.070207
+      cb_weight         0.065936
+  pass_rush_sep         0.063574
+ leverage_angle         0.062094
+
+🔹 Top 10 SHAP Importances:
+        feature  shap_importance
+  closing_speed         0.063647
+sep_receiver_cb         0.036390
+   s_max_last1s         0.028381
+  min_other_sep         0.024641
+           cb_o         0.019672
+          rcv_s         0.019359
+       hypo_sep         0.019062
+      cb_weight         0.018768
+  pass_rush_sep         0.017543
+   sep_velocity         0.016787
+
+**Final Features***
+(['cb_o', 'cb_weight', 'closing_speed', 'hypo_sep', 'leverage_angle', 'min_other_sep', 'passLength', 'pass_rush_sep', 'rcv_o', 'rcv_s', 'rcv_weight', 's_max_last1s', 'sep_receiver_cb', 'sep_velocity', 'sideline_dist', 'targetX', 'targetY', 'timeToThrow', 'yardline_number'], 'data/models/features/final_features.txt')
+
+
+
+
+
+
+***Model Performance and bayesian optimized parameters***
+Tuned params: {'n_estimators': 495, 'learning_rate': 0.199731332975657, 'max_depth': 8, 'subsample': 0.7032400036885579, 'colsample_bytree': 0.6732285012209511}
+▶ Training final XGBoost classifier …
+Tuned XGBoost Test AUC: 0.6131
+
+─── Classification Metrics (Test Set) ───
+Accuracy      : 0.5776
+Precision     : 0.5652
+Recall        : 0.4727
+F1‐score      : 0.5149
+Log‐loss      : 0.6702
+PR‐AUC        : 0.5895
+Confusion Matrix:
+[[41 20]
+ [29 26]]
+
+Classification Report:
+              precision    recall  f1-score   support
+
+           0       0.59      0.67      0.63        61
+           1       0.57      0.47      0.51        55
+
+    accuracy                           0.58       116
+   macro avg       0.58      0.57      0.57       116
+weighted avg       0.58      0.58      0.57       116
+
+
+
+
+
+
+
+
+future todos:
+- add in explainer dashboard so we can have dashboard for shap values/graphs and feature importance
+- upgrade vsrg to include more features (vertical speed, vertical distance, etc.)
+- add in more features to the model (e.g. route, coverage, etc.)
+- add in more data to the model (e.g. weather, etc.)
+- test with bayesian modeling for standby predictions
+- for live data, set up apache kafka to stream data to the model and spark to process the data in parallel
+- for mlops, set up a pipeline to deploy the model via api within docker/kubernetes within mlflow model registry and validation system for promotion
+
+
+
+
+

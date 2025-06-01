@@ -1,7 +1,59 @@
+[build-system]
+requires = [
+  "setuptools>=65.0",
+  "wheel",
+  "legacy-cgi>=2.6.3",
+  "numpy>=1.24",
+  "Cython>=0.29.0"
+]
+build-backend = "setuptools.build_meta"
+
 [project]
-name = "nfl-big-data-bowl-2025"
+name = "nfl_big_data_bowl_2025"
 version = "0.1.0"
-description = "Add your description here"
+description = "SCI analysis for NFL Big Data Bowl 2025"
+authors = [
+  { name="Geoff", email="ghadfield32@gmail.com" }
+]
 readme = "README.md"
-requires-python = ">=3.13"
-dependencies = []
+license = { file = "LICENSE" }
+requires-python = ">=3.12,<3.13"
+
+dependencies = [
+  "pandas>=2.0",
+  "numpy>=1.24",
+  "scipy>=1.10",
+  "scikit-learn>=1.2",
+  "statsmodels>=0.14",
+  "matplotlib>=3.7",
+  "seaborn>=0.12",
+  "missingno>=0.5",
+  "click>=8.1",
+  "jupyterlab>=4.0",
+  "opendatasets>=0.1",
+  "htmlmin2>=0.1.13",
+  "kaggle>=1.5.15",
+  "python-dotenv>=1.0.0",
+  "pyarrow>=8.0.0",
+  "fastparquet>=0.7.1",
+  "plotly>=6.0.0",
+  "pytest>=8.3.5",
+  "shap>=0.47.2",
+  "shapiq>=1.2.3",
+  "xgboost>=3.0.2,<4.0.0",
+  "optuna>=4.3.0,<5.0.0",
+  "optuna-integration>=4.3.0,<5.0.0",
+  "u8darts==0.24.0",
+  "sktime>=0.24.0",
+  "prophet>=1.1.4",
+  "arch>=5.3.0",
+  "conformal-tights==0.2.2",
+  "explainerdashboard>=0.4.8,<0.5.0"
+]
+
+[project.urls]
+Homepage = "https://github.com/ghadfield32/nfl_big_data_bowl_2025"
+"Bug Tracker" = "https://github.com/ghadfield32/nfl_big_data_bowl_2025/issues"
+
+[tool.uv]
+no-build-isolation = false

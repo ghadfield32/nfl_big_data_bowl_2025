@@ -1,3 +1,66 @@
+Metadata-Version: 2.4
+Name: nfl_big_data_bowl_2025
+Version: 0.1.0
+Summary: SCI analysis for NFL Big Data Bowl 2025
+Author-email: Geoff <ghadfield32@gmail.com>
+License: MIT License
+        
+        Copyright (c) 2025 Geoffrey Hadfield
+        
+        Permission is hereby granted, free of charge, to any person obtaining a copy
+        of this software and associated documentation files (the "Software"), to deal
+        in the Software without restriction, including without limitation the rights
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+        copies of the Software, and to permit persons to whom the Software is
+        furnished to do so, subject to the following conditions:
+        
+        The above copyright notice and this permission notice shall be included in all
+        copies or substantial portions of the Software.
+        
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+        SOFTWARE.
+        
+Project-URL: Homepage, https://github.com/ghadfield32/nfl_big_data_bowl_2025
+Project-URL: Bug Tracker, https://github.com/ghadfield32/nfl_big_data_bowl_2025/issues
+Requires-Python: <3.13,>=3.12
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: pandas>=2.0
+Requires-Dist: numpy>=1.24
+Requires-Dist: scipy>=1.10
+Requires-Dist: scikit-learn>=1.2
+Requires-Dist: statsmodels>=0.14
+Requires-Dist: matplotlib>=3.7
+Requires-Dist: seaborn>=0.12
+Requires-Dist: missingno>=0.5
+Requires-Dist: click>=8.1
+Requires-Dist: jupyterlab>=4.0
+Requires-Dist: opendatasets>=0.1
+Requires-Dist: htmlmin2>=0.1.13
+Requires-Dist: kaggle>=1.5.15
+Requires-Dist: python-dotenv>=1.0.0
+Requires-Dist: pyarrow>=8.0.0
+Requires-Dist: fastparquet>=0.7.1
+Requires-Dist: plotly>=6.0.0
+Requires-Dist: pytest>=8.3.5
+Requires-Dist: shap>=0.47.2
+Requires-Dist: shapiq>=1.2.3
+Requires-Dist: xgboost<4.0.0,>=3.0.2
+Requires-Dist: optuna<5.0.0,>=4.3.0
+Requires-Dist: optuna-integration<5.0.0,>=4.3.0
+Requires-Dist: u8darts==0.24.0
+Requires-Dist: sktime>=0.24.0
+Requires-Dist: prophet>=1.1.4
+Requires-Dist: arch>=5.3.0
+Requires-Dist: conformal-tights==0.2.2
+Requires-Dist: explainerdashboard<0.5.0,>=0.4.8
+Dynamic: license-file
+
 
 # NFL Big Data Bowl 2025 - Separation Consistency Index (SCI)
 

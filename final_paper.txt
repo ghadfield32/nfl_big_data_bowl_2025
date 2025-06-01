@@ -1,0 +1,92 @@
+# Vertical Success Rate Grade (VSRG): Evaluating Receiver Performance on Vertical Contested Catches
+
+---
+
+## Executive Summary
+
+In modern NFL analytics, contested catch ability is crucial yet nuanced, often assessed as an aggregate statistic without considering vertical catch dynamics. To provide deeper insights, we introduce the Vertical Success Rate Grade (VSRG), a novel metric specifically evaluating wide receiver (WR) effectiveness in contested catch scenarios segmented by vertical zones (low, mid, high). Utilizing detailed z-axis positioning data from the 2025 NFL Big Data Bowl, our model estimates the probability that a receiver successfully completes a contested catch. By converting these probabilities into intuitive grades (0–100 scale) for each vertical zone, VSRG reveals receiver strengths not captured by traditional metrics, offering scouts actionable, targeted evaluations.
+
+---
+
+## Methods
+
+### Data Preparation
+
+Data was sourced from the 2025 NFL Big Data Bowl dataset, covering plays, players, player-play interactions, and detailed tracking data. The initial filtering focused on:
+
+* Drop-back passing plays (`isDropback = True`).
+* Identifying contested situations by analyzing receiver-cornerback separations (`sep_receiver_cb ≤ contest_thresh`).
+* Categorizing catches into low (≤5 yards), mid (5-20 yards), and high (>20 yards) vertical zones using z-axis positioning data.
+
+### Metric Calculation
+
+1. **Contested Catch Identification**:
+
+   * Plays marked as contested if receiver-cornerback separation (`sep_receiver_cb`) fell below a height-adjusted threshold (`contest_thresh`).
+
+2. **Success Determination**:
+
+   * Binary classification of successful contested catches (`contested_success`).
+
+3. **Model Development**:
+
+   * Utilized an XGBoost classifier optimized via Bayesian parameter tuning:
+
+     * `n_estimators`: 495
+     * `learning_rate`: 0.1997
+     * `max_depth`: 8
+     * `subsample`: 0.7032
+     * `colsample_bytree`: 0.6732
+
+4. **Performance Validation**:
+
+   * Achieved a test AUC of 0.6131, accuracy of 57.8%, and an F1-score of 51.5%.
+
+5. **Grading System**:
+
+   * Aggregated predicted probabilities within each vertical zone per receiver and scaled to grades from 0 to 100.
+
+### Feature Engineering and Importance
+
+Final features selected based on SHAP, SHAPIQ, and permutation importances include:
+
+* Closing speed, receiver-CB separation, receiver burst speed (`s_max_last1s`), CB orientation (`cb_o`), CB weight, leverage angle, separation velocity, pass rush separation, and sideline distance.
+
+### Automation and Efficiency
+
+* Implemented automated preprocessing pipelines using scikit-learn `ColumnTransformer`, standardizing numeric features, encoding ordinal and nominal features, and handling missing values.
+* Model training and evaluation automated with Python scripts and Bayesian optimization to maximize predictive performance and computational efficiency.
+
+---
+
+## Results & Visualization
+
+Receivers displayed differential success rates by vertical zone:
+
+* **High Zone:** 33.7% success
+* **Mid Zone:** 50.3% success
+* **Low Zone:** 52.7% success
+
+Heatmaps and radar plots effectively illustrate vertical contested catch capabilities, quickly identifying strengths and weaknesses in specific zones.
+
+---
+
+## Limitations and Future Directions
+
+### Limitations
+
+* Variability in z-axis data accuracy and sample size limitations, especially in high vertical zones.
+* Exclusion of comprehensive contextual factors such as weather and quarterback pressure.
+
+### Future Extensions
+
+* Integration of contextual variables such as weather conditions, quarterback pressure, and defender proximity.
+* Exploration of Bayesian hierarchical modeling for enhanced robustness, particularly with limited sample sizes.
+* Development of real-time analytics infrastructure using Apache Kafka for data streaming and Spark for parallel processing.
+* Establishment of MLOps pipelines for continuous model validation, deployment, and monitoring through Docker/Kubernetes environments, leveraging MLFlow for model registry and validation.
+
+---
+
+## Conclusion
+
+The Vertical Success Rate Grade (VSRG) presents a highly practical, innovative, and rigorous approach to evaluating receiver skills in vertical contested scenarios. By clearly delineating receiver performance across vertical zones, VSRG significantly enhances scouting evaluations, providing actionable insights previously unavailable in existing analytics. The metric strongly aligns with the strategic goals of NFL personnel departments, facilitating informed player personnel decisions.
